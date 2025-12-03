@@ -4,7 +4,7 @@ use std::fs;
 use crate::lexer::Lexer;
 use crate::parser::Parser as LangParser;
 
-// IMPORTANT FIX: parser returns mtree::MTree, NOT semantic::MTree
+// parser returns mtree::MTree, NOT semantic::MTree
 use crate::mtree::MTree as ParseTree;
 
 // semantic analysis outputs semantic::MTree
@@ -37,7 +37,7 @@ pub fn handle(cli: Cli) -> SemanticTree {
         Command::Print { filepath, numbered } => {
             print_file(filepath, numbered);
 
-            // return empty semantic tree to satisfy return type
+            // return empty semantic tree 
             SemanticTree::START { funcs: vec![] }
         }
 
@@ -84,7 +84,7 @@ fn parse_and_convert(path: String) -> SemanticTree {
     println!("\n=== Parse Tree ===");
     parse_tree.print();
 
-    // Convert parse tree → semantic tree
+    // Convert parse tree to semantic tree
     match from_parse_tree(&parse_tree) {
         Ok(ast) => {
             println!("\n=== Semantic AST ===\n{:#?}", ast);
