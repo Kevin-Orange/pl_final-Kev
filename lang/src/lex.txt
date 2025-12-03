@@ -1,0 +1,42 @@
+// Test file for TPL: tests let, assign, return, if, while, arithmetic, booleans, and functions
+
+func factorial_recursion(n: i32) -> i32
+[
+    if n < 2 [
+        return 1;
+    ] else [
+        return n * factorial_recursion(n - 1);
+    ]
+]
+
+func factorial_loop(n: i32) -> i32
+[
+    let p: i32 = n;
+    while n > 0 [
+        n = n - 1;
+        p = p * n;
+    ]
+    return p;
+]
+
+func main() -> i32
+[
+    let n: i32 = 5;
+    let result1: i32;
+    let result2: i32;
+
+    // Test assignment and arithmetic
+    result1 = factorial_loop(n);
+    result2 = factorial_recursion(n);
+
+    // Test booleans and relational operators
+    let check: bool = (result1 == result2);
+    if check [
+        print 1; // true
+    ] else [
+        print 0; // false
+    ]
+
+    return result1;
+]
+
