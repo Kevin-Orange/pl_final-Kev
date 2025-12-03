@@ -65,9 +65,7 @@ impl MTree {
     pub fn id(name: String) -> Self { MTree::ID { name } }
 }
 
-/// Convert parse-tree (crate::mtree::MTree) into this semantic::MTree AST.
-/// This is a best-effort converter for the nodes produced by your parser.
-/// It returns Err(String) if it encounters something unexpected.
+/// Convert parse-tree
 pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
     match &pt.token {
         // program root: children are FUNC_DECL nodes
