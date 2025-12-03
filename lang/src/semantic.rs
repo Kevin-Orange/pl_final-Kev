@@ -154,7 +154,7 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
             Ok(MTree::BLOCK { stmts })
         }
 
-        // let statement: children layout in your parser:
+        
         // [ ID, optional TYPE, optional expr ]
         Token::LET_STMT => {
             let id_node = pt.children.get(0).ok_or("let missing id")?;
