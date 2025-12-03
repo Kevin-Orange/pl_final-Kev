@@ -109,7 +109,7 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
                 params.push((pname, ptype));
             }
 
-            // next child: could be return type token or directly block
+            // next child:
             let mut ret_type = Type::Unknown;
             let mut block_node_opt = None;
             if let Some(next) = iter.next() {
@@ -123,11 +123,11 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
                         block_node_opt = iter.next();
                     }
                     Token::BRACKET_L | Token::BLOCK => {
-                        // next is the block node
+                        // next is block node
                         block_node_opt = Some(next);
                     }
                     _ => {
-                        // fallback: try the following child as block
+                        // fallback: try next child a block maybe
                         block_node_opt = Some(next);
                     }
                 }
@@ -161,7 +161,7 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
                 _ => return Err("Expected id in let".into()),
             };
 
-            // check for type and expr
+            
             let mut ty = Type::Unknown;
             let mut expr: Option<Box<MTree>> = None;
 
@@ -187,7 +187,7 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
                         expr = Some(Box::new(from_parse_tree(second)?));
                     }
                     _ => {
-                        // nothing
+                        
                     }
                 }
             }
@@ -195,7 +195,7 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
             Ok(MTree::LET_STMT { id, ty, expr })
         }
 
-        // assignment can appear as an infix ASSIGN node (token = Token::ASSIGN)
+        // (token = Token::ASSIGN)
         Token::ASSIGN => {
             // children: left (ID) and right (expr)
             if pt.children.len() != 2 {
@@ -229,7 +229,7 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
             })
         }
 
-        // if statement: condition, then block, optional else block
+        // if 
         Token::IF_STMT => {
             let cond_node = pt.children.get(0).ok_or("if missing condition")?;
             let then_node = pt.children.get(1).ok_or("if missing then block")?;
@@ -249,14 +249,14 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
             })
         }
 
-        // print statement: expression to print
+        // print 
         Token::PRINT => {
             let expr_node = pt.children.get(0).ok_or("print missing expr")?;
             let e = from_parse_tree(expr_node)?;
             Ok(MTree::PRINT_STMT { expr: Box::new(e) })
         }
 
-        // Unary operators (prefix)
+        // Unary operators 
         Token::NOT => {
             if pt.children.len() != 1 {
                 return Err("unary NOT must have one child".into());
@@ -311,9 +311,9 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
             }
         }
 
-        // parentheses wrap: parse child directly
+        // parentheses wrap
         Token::PARENS_L => {
-            // usually the parse tree puts the expression as child
+            
             if pt.children.len() >= 1 {
                 from_parse_tree(&pt.children[0])
             } else {
@@ -323,16 +323,16 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
 
         // identifiers - could be variable or function call
         Token::ID { name } => {
-            // Check if this is a function call by looking at children
+            
             if pt.children.len() > 0 {
-                // Function call
+                
                 let mut args = Vec::new();
                 for arg_node in &pt.children {
                     args.push(from_parse_tree(arg_node)?);
                 }
                 Ok(MTree::CALL { name: name.clone(), args })
             } else {
-                // Simple variable reference
+                
                 Ok(MTree::ID { name: name.clone() })
             }
         }
@@ -345,7 +345,7 @@ pub fn from_parse_tree(pt: &ParseTree) -> Result<MTree, String> {
     }
 }
 
-/// Semantic analyzer: checks declaration-before-use and basic type checks
+/// Semantic analyzer
 pub fn analyze(tree: &MTree, symbols: &mut SymbolTable) -> Result<Type, Vec<String>> {
     let mut errors: Vec<String> = Vec::new();
 
@@ -387,13 +387,13 @@ pub fn analyze(tree: &MTree, symbols: &mut SymbolTable) -> Result<Type, Vec<Stri
                     if *ty != Type::Unknown && et != *ty && et != Type::Unknown {
                         errors.push(format!("Type mismatch for '{}': expected {:?}, found {:?}", id, ty, et));
                     }
-                    // Use inferred type if no explicit type given
+                    
                     if *ty == Type::Unknown { et } else { ty.clone() }
                 } else {
                     ty.clone()
                 };
                 
-                // Declare variable in current symbol table
+                
                 let _ = symbols.declare(id, inferred_ty).map_err(|e| errors.push(e)).ok();
                 Type::Unknown
             }
@@ -434,7 +434,7 @@ pub fn analyze(tree: &MTree, symbols: &mut SymbolTable) -> Result<Type, Vec<Stri
                 } else {
                     Type::Unknown
                 };
-                // If both branches return a value, check they match
+                
                 if then_type != Type::Unknown && else_type != Type::Unknown && then_type != else_type {
                     errors.push(format!("If branches return different types: {:?} vs {:?}", then_type, else_type));
                 }
@@ -467,7 +467,7 @@ pub fn analyze(tree: &MTree, symbols: &mut SymbolTable) -> Result<Type, Vec<Stri
                 let lt = helper(left, symbols, errors);
                 match op.as_str() {
                     "+"|"-"|"*"|"/" => {
-                        // Allow Unknown types (from function calls we can't verify)
+                        
                         if (lt != Type::Int && lt != Type::Unknown) || (rt != Type::Int && rt != Type::Unknown) {
                             errors.push(format!("Arithmetic op '{}' requires Int types, found {:?} and {:?}", op, lt, rt));
                         }
@@ -480,7 +480,7 @@ pub fn analyze(tree: &MTree, symbols: &mut SymbolTable) -> Result<Type, Vec<Stri
                         Type::Bool
                     }
                     "<"|">"|">="|"<=" => {
-                        // Allow Unknown types for relational operators too
+                        
                         if (lt != Type::Int && lt != Type::Unknown) || (rt != Type::Int && rt != Type::Unknown) {
                             errors.push(format!("Relational op '{}' requires Int types, found {:?} and {:?}", op, lt, rt));
                         }
@@ -496,12 +496,11 @@ pub fn analyze(tree: &MTree, symbols: &mut SymbolTable) -> Result<Type, Vec<Stri
                 }
             }
             MTree::CALL { name: _, args } => {
-                // Function calls: just check arguments are valid expressions
-                // We don't have function signature lookup, so we can't verify types
+                
                 for arg in args {
                     helper(arg, symbols, errors);
                 }
-                // Assume function returns Unknown since we don't track function signatures
+                // Assume function returns Unknown since no track function signatures
                 Type::Unknown
             }
             MTree::ID { name } => {
