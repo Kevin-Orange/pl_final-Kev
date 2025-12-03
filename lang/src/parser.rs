@@ -82,7 +82,7 @@ impl Parser {
 }
 
 impl Parser {
-    // simple recursive descend parser
+    // recursive descend parser
 
     pub fn parse(&mut self) -> MTree {
         let mut tree = MTree::new(Token::START);
